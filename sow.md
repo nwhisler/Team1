@@ -28,11 +28,11 @@
 ### Timeline:
   #### Key Milestones:
 
-    *Implement TCP server and client: Oct 6*
-    *Implement message protocol: Oct 20*
-    *Synchronize clients: Nov 3*
-    *User interface: Nov 17*
-    *Error handling and testing: Dec 6*
+    Implement TCP server and client: Oct 6
+    Implement message protocol: Oct 20
+    Synchronize clients: Nov 3
+    User interface: Nov 17
+    Error handling and testing: Dec 6
 
 ### Task Breakdown:
 
@@ -45,7 +45,7 @@
 ### Technical Requirements:
   #### Hardware:
 
-    *1 GHz single-core processor, 2 GB of RAM, 10 GB of free disk space*
+    1 GHz single-core processor, 2 GB of RAM, 10 GB of free disk space
 
   #### Software:
 
