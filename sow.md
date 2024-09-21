@@ -2,28 +2,28 @@
 
 ### Project Title:
 
-    *Quiz Game*
+    Quiz Game
 
 ### Team:
 
-  *Nicholas Whisler*
+  Nicholas Whisler
 
 ### Project Objective:
 
-  *The project objective is to create a server that sends questions and tracks the number of correct answers for multiple participantsw while the client side handles displaying questions and sending answers*
+  The project objective is to create a server that sends questions and tracks the number of correct answers for multiple participantsw while the client side handles displaying questions and sending answers
 
 ### Scope:
   #### Inclusions:
 
-    *Implement server and client, message protocol, synchronization, error handling, testing, and encryption.
+    Implement server and client, message protocol, synchronization, error handling, testing, and encryption.
 
   #### Exclusions:
 
-    *Creating a question and answer set.*
+    Creating a question and answer set.
 
 #### Deliverables:
 
-   *server.py and client.py*
+   server.py and client.py
 
 ### Timeline:
   #### Key Milestones:
@@ -36,11 +36,11 @@
 
 ### Task Breakdown:
 
-    *Implement TCP server and client: 1 hour*
-    *Implement message protocol: 3 hours*
-    *Synchronize clients: 2 hours*
-    *User interface: 2 hours*
-    *Error handling and testing: 4 hours*    
+    Implement TCP server and client: 1 hour
+    Implement message protocol: 3 hours
+    Synchronize clients: 2 hours
+    User interface: 2 hours
+    Error handling and testing: 4 hours  
 
 ### Technical Requirements:
   #### Hardware:
@@ -49,20 +49,20 @@
 
   #### Software:
 
-    *Python, socket library, operating system like Windows 7/8/10, macOS, or Linux*
+    Python, socket library, operating system like Windows 7/8/10, macOS, or Linux
 
 ### Assumptions:
 
-    *All hardware and software requirements are met*
+    All hardware and software requirements are met
 
 ### Roles and Responsibilities:
 
-    *Nicholas Whisler: project manager, developer, tester*
+    Nicholas Whisler: project manager, developer, tester
 
 ### Communication Plan:
 
-    *Frequency of ReadMe and Statement of Work update based on task completing*
+    Frequency of ReadMe and Statement of Work update based on task completion dates
 
 ### Additional Notes:
 
-    *None*
+    None
