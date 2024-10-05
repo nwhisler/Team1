@@ -35,13 +35,25 @@ def service_connection(key, mask):
             if recv_data.decode() == "To start game type start":
                 print(recv_data.decode())
                 data.message = input("Input: ")
+                if(data.message != "Start" and data.message != "start"):
+                    data.message = "Incorrect start to game. Type start to start game."
             elif "Quiz completed" in recv_data.decode():
                 print(recv_data.decode())
                 sel.unregister(sock)
                 sock.close()
+            elif recv_data.decode() == "No answer provided. Game terminating.":
+                print(recv_data.decode())
+                sel.unregister(sock)
+                sock.close()   
+            elif recv_data.decode() == "Incorrect start to game. Type start to start game.":
+                print(recv_data.decode())
+                sel.unregister(sock)
+                sock.close()               
             else:
                 print(recv_data.decode())
                 data.message = input("Answer: ")
+                if len(data.message) == 0:
+                    data.message = "Nothing sent."
         if not recv_data:
             if data.complete == "Quiz completed":
                 sel.unregister(sock)

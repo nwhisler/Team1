@@ -12,7 +12,7 @@ def accept_wrapper(sock):
     conn, addr = sock.accept()
     conn.setblocking(False)
     conn.send("To start game type start".encode())
-    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"", correct=0, questions=[], previousQuestion = "")
+    data = types.SimpleNamespace(addr=addr, inb=b"", outb=b"", correct=0, questions=[], previousQuestion = "", sentStart=True)
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=data)
 
@@ -22,23 +22,36 @@ def service_connection(key, mask):
 
     if mask & selectors.EVENT_READ:
         recv_data = sock.recv(1024)
-        if recv_data:
-            if len(data.previousQuestion) > 0:
-                print(data.previousQuestion)
+        if recv_data: 
+            if(recv_data.decode() == "Incorrect start to game. Type start to start game."):
+                data.outb += recv_data    
+            elif(recv_data.decode() == "Nothing sent."):
+                data.outb += "No answer provided. Game terminating.".encode() 
+            elif len(data.previousQuestion) > 0:
                 answer = recv_data.decode()
                 if answer == questions[data.previousQuestion]:
                     data.correct += 1
-                data.outb = recv_data
-            else:
-                if(recv_data.decode() == "Start" or recv_data.decode() == "start"):
-                    data.outb += recv_data
+                data.outb = recv_data 
+            elif(recv_data.decode() == "Start" or recv_data.decode() == "start"):
+                    data.outb += recv_data    
         else:
             if(len(data.questions) == len(questions.keys())):
                 sel.unregister(sock)
                 sock.close()
+            
     if mask & selectors.EVENT_WRITE:
         if data.outb:
-            if(len(data.questions)) != len(questions.keys()):
+            if data.outb.decode() == "Incorrect start to game. Type start to start game.":
+                sock.send(data.outb)
+                data.outb = b""
+                sel.unregister(sock)
+                sock.close()  
+            elif data.outb.decode() == "No answer provided. Game terminating.":
+                sock.send(data.outb)
+                data.outb = b""
+                sel.unregister(sock)
+                sock.close()                 
+            elif(len(data.questions)) != len(questions.keys()):
                 for questionKey in questions.keys():
                     if questionKey not in data.questions:
                         sock.send(questionKey.encode())
