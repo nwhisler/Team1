@@ -18,6 +18,10 @@ class Message:
         self.previousQuestion = None
         self.correct = 0
         self.closed = False
+        self.waiting = False
+        self.number_of_players= 0
+        self.previousPlayer = False
+        self.username = ""
 
     def _set_selector_events_mask(self, mode):
         """Set selector to listen for events: mode is 'r', 'w', or 'rw'."""
@@ -38,40 +42,68 @@ class Message:
             pass
 
     def _write(self):
-        
-        if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
-            message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 1"),)
-            message = self._json_encode(message, message["encoding"])
-            self._send_buffer += message
-            self.previousQuestion = "Question 1"
-        elif self.previousQuestion:
-            if self.previousQuestion == "Question 1":
-                message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 2"),)
-                message = self._json_encode(message, message["encoding"])
-                self._send_buffer += message
-                self.previousQuestion = "Question 2"
-            elif self.previousQuestion == "Question 2":
-                message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 3"),)
-                message = self._json_encode(message, message["encoding"])
-                self._send_buffer += message
-                self.previousQuestion = "Question 3"
-            elif self.previousQuestion == "Question 3":
-                message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 4"),)
-                message = self._json_encode(message, message["encoding"])
-                self._send_buffer += message
-                self.previousQuestion = "Question 4"
-            elif self.previousQuestion == "Question 4":
-                message = dict(type="text/json", encoding="utf-8", content=dict(action="Correct", value="Total correct " + str(self.correct)),)
-                message = self._json_encode(message, message["encoding"])
-                self._send_buffer += message
-                self.previousQuestion = "Done"
-            elif self.previousQuestion == "Done":
-                self.closed = True
-                self.close()
 
-        if not self.closed:
+        # If there are the require number of players the game begins for both players otherwise the first player waits for the second player to join.
+        # Also this broadcasts the username and the number of current correct answers a player has to the player.
+
+        if(self.number_of_players == 2):
+        
+            if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
+                message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 1"),)
+                message = self._json_encode(message, message["encoding"])
+                self._send_buffer += message
+                self.previousQuestion = "Question 1"
+            elif self.previousQuestion:
+                if self.previousQuestion == "Question 1":
+                    value = self.username + " total Correct: " + str(self.correct) + "\n" + "Question 2"
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+                    self.previousQuestion = "Question 2"
+                elif self.previousQuestion == "Question 2":
+                    value = self.username + " total Correct: " + str(self.correct) + "\n" + "Question 3"
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+                    self.previousQuestion = "Question 3"
+                elif self.previousQuestion == "Question 3":
+                    value = self.username + " total Correct: " + str(self.correct) + "\n" + "Question 4"
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+                    self.previousQuestion = "Question 4"
+                elif self.previousQuestion == "Question 4":
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Correct", value="Total correct " + str(self.correct)),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+                    self.previousQuestion = "Done"
+                elif self.previousQuestion == "Done":
+                    self.closed = True
+                    self.close()
+
+            if not self.closed:
+                self.sock.send(self._send_buffer)
+                self._send_buffer = b""
+
+        else:
+
+            if self.waiting:
+    
+                message = dict(type="text/json", encoding="utf-8", content=dict(action="Notified", value=self.username),)
+                message = self._json_encode(message, message["encoding"])
+                self._send_buffer += message
+
+            else:
+    
+                if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
+                    self.waiting = True
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Waiting", value=self.username),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+
             self.sock.send(self._send_buffer)
             self._send_buffer = b""
+
 
     def _json_encode(self, obj, encoding):
         return json.dumps(obj, ensure_ascii=False).encode(encoding)
@@ -84,7 +116,15 @@ class Message:
         tiow.close()
         return obj
 
-    def process_events(self, mask):
+    def process_events(self, mask, number_of_players):
+
+        # Sets the number of players for synchronization.
+        if self.previousPlayer:
+            self.number_of_players = 2
+        else:
+            self.number_of_players = number_of_players
+            if number_of_players == 2:
+                self.previousPlayer = True
         if mask & selectors.EVENT_READ:
             self.read()
         if mask & selectors.EVENT_WRITE:
@@ -111,6 +151,9 @@ class Message:
                 elif self.previousQuestion == "Question 4":
                     if message["content"]["value"] == questions[self.previousQuestion]:
                         self.correct += 1
+            # Sets username value
+            elif message["content"]["action"] == "Start" or message["content"]["action"] == "start":
+                self.username = message["content"]["value"]
 
             self._set_selector_events_mask("w")
 

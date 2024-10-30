@@ -4,6 +4,7 @@ import selectors
 import json
 import io
 import struct
+import time
 
 
 class Message:
@@ -49,6 +50,19 @@ class Message:
             message = dict(type="text/json", encoding="utf-8", content=dict(action="Complete", value="Complete"),)
             message = self._json_encode(message, message["encoding"])
             self._send_buffer = message
+
+        elif self.request["content"]["action"] == "Waiting":
+            username = self.request["content"]["value"]
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Start", value=username),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message  
+
+        elif self.request["content"]["action"] == "Notified":
+            username = self.request["content"]["value"]
+            time.sleep(10)
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Start", value=username),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message           
         
         self.sock.send(self._send_buffer)
         self._send_buffer = b""
@@ -72,12 +86,20 @@ class Message:
             self.write()
 
     def read(self):
+
+        # Reads and prints the updated number of correct answers and the next question. It also handles waiting for a second player after being notified of wait.
         
         self._read()
         message = self._json_decode(self._recv_buffer,"utf-8")
         self.request = message
-        print("")
-        print(message["content"]["value"])
+        if(message["content"]["action"] == "Notified"):
+            pass
+        elif(message["content"]["action"] == "Waiting"):
+            print("")
+            print("Waiting for second player.")
+        else:
+            print("")
+            print(message["content"]["value"])
         self._set_selector_events_mask("w")
 
     def write(self):
