@@ -39,6 +39,13 @@ class Message:
         if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
             self._send_buffer = self._json_encode(self.request, self.request["encoding"])
 
+        elif self.request["content"]["action"] == "Welcome":
+            action = "Option"
+            value = input("username: ")
+            message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message            
+
         elif self.request["content"]["action"] == "Question":
             action = "Answer"
             value = input("Answer: ")
@@ -53,16 +60,30 @@ class Message:
 
         elif self.request["content"]["action"] == "Waiting":
             username = self.request["content"]["value"]
-            message = dict(type="text/json", encoding="utf-8", content=dict(action="Start", value=username),)
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Option", value=username),)
             message = self._json_encode(message, message["encoding"])
             self._send_buffer = message  
 
         elif self.request["content"]["action"] == "Notified":
             username = self.request["content"]["value"]
-            time.sleep(10)
-            message = dict(type="text/json", encoding="utf-8", content=dict(action="Start", value=username),)
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Option", value=username),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message 
+
+        elif self.request["content"]["action"] == "Winner":
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Finished_Waiting", value="None"),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message 
+
+        elif self.request["content"]["action"] == "Winner_Waiting":
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Finished_Waiting", value="None"),)
             message = self._json_encode(message, message["encoding"])
             self._send_buffer = message           
+
+        elif self.request["content"]["action"] == "Won" or self.request["content"]["action"] == "Loss":
+            message = dict(type="text/json", encoding="utf-8", content=dict(action="Finished", value="None"),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message    
         
         self.sock.send(self._send_buffer)
         self._send_buffer = b""
@@ -92,7 +113,10 @@ class Message:
         self._read()
         message = self._json_decode(self._recv_buffer,"utf-8")
         self.request = message
+    
         if(message["content"]["action"] == "Notified"):
+            pass
+        elif(message["content"]["action"] == "Winner_Waiting"):
             pass
         elif(message["content"]["action"] == "Waiting"):
             print("")

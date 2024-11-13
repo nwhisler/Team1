@@ -3,12 +3,16 @@ import socket
 import selectors
 import types
 import errno 
+import argparse
 
 import libserver
 
 # Selector handles questions for each player so that each player takes the same quiz.
 
 sel = selectors.DefaultSelector()
+
+scores = {}
+completed = {}
 
 questions = {"Question 1": "Answer 1","Question 2": "Answer 2","Question 3": "Answer 3","Question 4": "Answer 4"}
 
@@ -22,7 +26,12 @@ def accept_wrapper(sock):
     events = selectors.EVENT_READ | selectors.EVENT_WRITE
     sel.register(conn, events, data=message)
 
-host, port = sys.argv[1], int(sys.argv[2])
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--port')
+
+args = parser.parse_args()
+
+host, port = "0.0.0.0", int(args.port)
 
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 lsock.bind((host, port))
@@ -41,6 +50,20 @@ try:
                 message = key.data
                 try:
                     message.process_events(mask, number_of_players)
+                    score = message.score()
+                    address = message.address()
+                    scores[address] = score
+                    complete = message.get_completed()
+                    completed[address] = complete
+                    values = list(set(completed.values()))
+                    if len(values) == 1 and values[0] == True:
+                        for key in scores.keys():
+                            if key != address:
+                                message.set_opponent_score(scores[key])
+                                if scores[key] > score:
+                                    message.declare_winner(False)
+                                else:
+                                    message.declare_winner(True)
                 except Exception:
                     number_of_players -= 1
                     message.close()
