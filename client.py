@@ -3,6 +3,7 @@ import socket
 import selectors
 import types
 import random
+import argparse
 
 import libclient
 
@@ -21,23 +22,22 @@ def start_connections(host, port, request):
     message = libclient.Message(sel, sock, server_addr, request)
     sel.register(sock, events, data=message)
 
-def create_request(action, value):
-    if action == "start" or action == "Start":
+def create_request():
+    
         return dict(
             type="text/json",
             encoding="utf-8",
-            content=dict(action=action, value=value),
-        )
-    else:
-        return dict(
-            type="text/json",
-            encoding="utf-8",
-            content=dict(action=action, value=value),
+            content=dict(action="start", value="value"),
         )
 
-host, port = sys.argv[1], int(sys.argv[2])
-action, value = sys.argv[3], sys.argv[4]
-request = create_request(action, value)
+parser = argparse.ArgumentParser()
+parser.add_argument('-i', '--ip')
+parser.add_argument('-p', '--port')
+
+args = parser.parse_args()
+
+host, port = args.ip, int(args.port)
+request = create_request()
 
 start_connections(host, port, request)
 
