@@ -82,15 +82,23 @@ class Message:
             message = self._json_encode(message, message["encoding"])
             self._send_buffer = message           
 
-        elif self.request["content"]["action"] == "Won" or self.request["content"]["action"] == "Loss":
+        elif self.request["content"]["action"] == "Won" or self.request["content"]["action"] == "Loss" or self.request["content"]["action"] == "Draw":
             message = dict(type="text/json", encoding="utf-8", content=dict(action="Finished", value="None"),)
             message = self._json_encode(message, message["encoding"])
-            self._send_buffer = message    
+            self._send_buffer = message 
+
+        # Resets game   
 
         elif self.request["content"]["action"] == "Reset":
             action = "Reset"
             value = input("Response: ")
             message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message 
+
+        elif self.request["content"]["action"] == "Left":
+            action = "previousQuestion"
+            message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value="None"),)
             message = self._json_encode(message, message["encoding"])
             self._send_buffer = message 
 
@@ -133,10 +141,10 @@ class Message:
         elif(message["content"]["action"] == "Winner_Waiting"):
             pass
         elif(message["content"]["action"] == "Waiting"):
-            print("")
+            print("****************************************************")
             print("Waiting for second player.")
         else:
-            print("")
+            print("****************************************************")
             print(message["content"]["value"])
         self._set_selector_events_mask("w")
 

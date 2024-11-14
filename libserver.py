@@ -26,12 +26,24 @@ class Message:
         self.previousPlayer = False
         self.username = None
         self.winner_declared = False
-        self.winner = False
+        self.winner = None
         self.opponent_score = None
         self.completed = False
         self.closing = False
         self.reset = True
         self.reset_answered = False
+        self.left = False
+        self.notify = False
+
+    def set_notify(self):
+    
+        self.notify = True
+
+    def get_left(self):
+
+        return self.left
+
+    # Resets game
 
     def get_reset_answered(self):
 
@@ -81,6 +93,8 @@ class Message:
         if self.closing:
 
             self.previousQuestion = None
+
+            # Resets game
 
             if self.request["content"]["action"] == "Reset":
 
@@ -132,9 +146,7 @@ class Message:
         if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
 
             message_action = "Welcome"
-            message_value = ("***********\n" + 
-                            "| Welcome |\n" + 
-                            "***********\n" + 
+            message_value = ("Welcome\n" + 
                             "Enter a username to begin. To leave enter leave.\n")
             message = dict(type="text/json", encoding="utf-8", content=dict(action=message_action, value=message_value),)
             message = self._json_encode(message, message["encoding"])
@@ -147,8 +159,19 @@ class Message:
         else:
 
             if(self.number_of_players == 2):
-            
-                if self.request["content"]["action"] == "Option" and self.username is not None:
+
+                if self.notify:
+
+                    action = "Left"
+                    value = "Opponent left."
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+                    self.sock.send(self._send_buffer)
+                    self._send_buffer = b""
+                    self.notify = False
+
+                elif self.request["content"]["action"] == "Option" and self.username is not None:
                     message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 1"),)
                     message = self._json_encode(message, message["encoding"])
                     self._send_buffer += message
@@ -187,6 +210,12 @@ class Message:
                                 message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value,))
                                 message = self._json_encode(message, message["encoding"])
                                 self._send_buffer += message 
+                            elif self.winner is None:
+                                action = "Draw"
+                                value = "Tie game " + str(self.correct) + " to " + str(self.opponent_score)
+                                message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value,))
+                                message = self._json_encode(message, message["encoding"])
+                                self._send_buffer += message                                 
                             else:
                                 action = "Loss"
                                 value = "You lossed " + str(self.correct) + " to " + str(self.opponent_score)
@@ -267,20 +296,35 @@ class Message:
                 if self.previousQuestion == "Question 1":
                     if message["content"]["value"] == questions[self.previousQuestion]:
                         self.correct += 1
+                    if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
+                        self.closed = True
+                        self.close()
                 elif self.previousQuestion == "Question 2":
                     if message["content"]["value"] == questions[self.previousQuestion]:
                         self.correct += 1
+                    if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
+                        self.closed = True
+                        self.close()
                 elif self.previousQuestion == "Question 3":
                     if message["content"]["value"] == questions[self.previousQuestion]:
                         self.correct += 1
+                    if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
+                        self.closed = True
+                        self.close()
                 elif self.previousQuestion == "Question 4":
                     if message["content"]["value"] == questions[self.previousQuestion]:
                         self.correct += 1
+                    if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
+                        self.closed = True
+                        self.close()
             elif message["content"]["action"] == "Option":
                 if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
                     self.close()
                 else:
                     self.username = message["content"]["value"]
+            elif message["content"]["action"] == "previousQuestion" and self.previousQuestion is None:
+
+                self.request["content"]["action"] = "Option"
 
             self._set_selector_events_mask("w")
 
@@ -292,6 +336,8 @@ class Message:
         self._set_selector_events_mask("r")
 
     def close(self):
+        if self.previousQuestion != "Done":
+            self.left = True
         try:
             self.selector.unregister(self.sock)
         except Exception as e:
