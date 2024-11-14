@@ -9,6 +9,9 @@ questions = {"Question 1": "Answer 1","Question 2": "Answer 2","Question 3": "An
 
 class Message:
     def __init__(self, selector, sock, addr):
+        
+        # Stores relevant information for each player's quiz along with opponents quiz.
+
         self.selector = selector
         self.sock = sock
         self.addr = addr
@@ -27,6 +30,12 @@ class Message:
         self.opponent_score = None
         self.completed = False
         self.closing = False
+        self.reset = True
+        self.reset_answered = False
+
+    def get_reset_answered(self):
+
+        return self.reset_answered
 
     def get_completed(self):
 
@@ -71,8 +80,54 @@ class Message:
 
         if self.closing:
 
-            self.closed = True
-            self.close()
+            self.previousQuestion = None
+
+            if self.request["content"]["action"] == "Reset":
+
+                self.reset_answered = True
+
+                reset_value = self.request["content"]["value"]
+
+                if reset_value == "Y" or reset_value == "y":
+
+                    self.correct = 0
+                    self.closed = False
+                    self.waiting = False
+                    self.number_of_players= 0
+                    self.previousPlayer = False
+                    self.winner_declared = False
+                    self.winner = False
+                    self.opponent_score = None
+                    self.completed = False
+                    self.closing = False
+                    self.reset = True
+
+                    action = "Username"
+                    value = "Enter username to begin game."
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+                    message = self._json_encode(message, message["encoding"])
+                    self._send_buffer += message
+                    self.sock.send(self._send_buffer)
+                    self._send_buffer = b""
+
+                else:
+
+                    self.reset = False
+
+            else:
+
+                action = "Reset"
+                value = "Do you want to play again? Y/n"
+                message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+                message = self._json_encode(message, message["encoding"])
+                self._send_buffer += message
+                self.sock.send(self._send_buffer)
+                self._send_buffer = b""
+
+            if not self.reset:
+
+                self.closed = True
+                self.close()
 
         if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
 
@@ -124,6 +179,7 @@ class Message:
                         self.previousQuestion = "Done"
                         self.completed = True
                     elif self.previousQuestion == "Done":
+                    # Declares Winner
                         if self.winner_declared:
                             if self.winner:
                                 action = "Won"
@@ -188,7 +244,6 @@ class Message:
 
     def process_events(self, mask, number_of_players):
 
-        # Sets the number of players for synchronization.
         if self.previousPlayer:
             self.number_of_players = 2
         else:
@@ -221,7 +276,6 @@ class Message:
                 elif self.previousQuestion == "Question 4":
                     if message["content"]["value"] == questions[self.previousQuestion]:
                         self.correct += 1
-            # Sets username value
             elif message["content"]["action"] == "Option":
                 if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
                     self.close()

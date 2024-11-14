@@ -39,6 +39,8 @@ class Message:
         if self.request["content"]["action"] == "start" or self.request["content"]["action"] == "Start":
             self._send_buffer = self._json_encode(self.request, self.request["encoding"])
 
+        # Handles input based on situation
+
         elif self.request["content"]["action"] == "Welcome":
             action = "Option"
             value = input("username: ")
@@ -84,6 +86,20 @@ class Message:
             message = dict(type="text/json", encoding="utf-8", content=dict(action="Finished", value="None"),)
             message = self._json_encode(message, message["encoding"])
             self._send_buffer = message    
+
+        elif self.request["content"]["action"] == "Reset":
+            action = "Reset"
+            value = input("Response: ")
+            message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message 
+
+        elif self.request["content"]["action"] == "Username":
+            action = "Option"
+            value = input("username: ")
+            message = dict(type="text/json", encoding="utf-8", content=dict(action=action, value=value),)
+            message = self._json_encode(message, message["encoding"])
+            self._send_buffer = message   
         
         self.sock.send(self._send_buffer)
         self._send_buffer = b""
@@ -107,8 +123,6 @@ class Message:
             self.write()
 
     def read(self):
-
-        # Reads and prints the updated number of correct answers and the next question. It also handles waiting for a second player after being notified of wait.
         
         self._read()
         message = self._json_decode(self._recv_buffer,"utf-8")
