@@ -7,12 +7,13 @@ import argparse
 
 import libserver
 
-# Selector handles questions for each player so that each player takes the same quiz.
-
 sel = selectors.DefaultSelector()
+
+# Stores scores and whether a quiz has been completed.
 
 scores = {}
 completed = {}
+reset = 0
 
 questions = {"Question 1": "Answer 1","Question 2": "Answer 2","Question 3": "Answer 3","Question 4": "Answer 4"}
 
@@ -49,6 +50,9 @@ try:
             else:
                 message = key.data
                 try:
+
+                    # Stores relevant information for both player's quiz.
+
                     message.process_events(mask, number_of_players)
                     score = message.score()
                     address = message.address()
@@ -60,10 +64,17 @@ try:
                         for key in scores.keys():
                             if key != address:
                                 message.set_opponent_score(scores[key])
+                                # Winning conditions
                                 if scores[key] > score:
                                     message.declare_winner(False)
                                 else:
                                     message.declare_winner(True)
+                        if message.get_reset_answered():
+                            reset += 1
+                    if reset == 2:
+                        scores = {}
+                        completed = {}
+                        reset = 0
                 except Exception:
                     number_of_players -= 1
                     message.close()
