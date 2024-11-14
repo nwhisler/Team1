@@ -14,6 +14,9 @@ sel = selectors.DefaultSelector()
 scores = {}
 completed = {}
 reset = 0
+left = False
+previous_address = None
+previous_score = None
 
 questions = {"Question 1": "Answer 1","Question 2": "Answer 2","Question 3": "Answer 3","Question 4": "Answer 4"}
 
@@ -41,6 +44,7 @@ lsock.setblocking(False)
 sel.register(lsock, selectors.EVENT_READ, data=None)
 
 try:
+    print("Server running.")
     while True:
         events = sel.select(timeout=None)
         for key, mask in events:            
@@ -50,9 +54,23 @@ try:
             else:
                 message = key.data
                 try:
+                 # Notifies opponent left
+                    if left:
+                        message.set_notify()
+                        left = False
 
+                    # Resets game state
+                    if reset >= 2:
+                        scores = {}
+                        completed = {}
+                        if previous_address and reset >= 1:
+                            completed[previous_address] = True
+                            scores[previous_address] = previous_score
+                            previous_address = None
+                            previous_score = None
+                        reset = 0
+                        left = False
                     # Stores relevant information for both player's quiz.
-
                     message.process_events(mask, number_of_players)
                     score = message.score()
                     address = message.address()
@@ -67,16 +85,23 @@ try:
                                 # Winning conditions
                                 if scores[key] > score:
                                     message.declare_winner(False)
+                                elif scores[key] == score:
+                                    message.declare_winner(None)
                                 else:
                                     message.declare_winner(True)
+                    # Resets game
                         if message.get_reset_answered():
                             reset += 1
-                    if reset == 2:
-                        scores = {}
-                        completed = {}
-                        reset = 0
                 except Exception:
                     number_of_players -= 1
+                    left = message.get_left()
+                    score = message.score()
+                    address = message.address()
+                    if left:
+                        previous_address = address
+                        previous_score = score
+                    reset += 1
+                    completed[address] = True
                     message.close()
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")

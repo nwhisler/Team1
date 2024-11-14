@@ -55,5 +55,6 @@ try:
             break
 except KeyboardInterrupt:
     print("caught keyboard interrupt, exiting")
+    print("Reset Server.")
 finally:
     sel.close()
