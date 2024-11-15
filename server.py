@@ -54,11 +54,10 @@ try:
             else:
                 message = key.data
                 try:
-                 # Notifies opponent left
+                    # Notifies opponent left
                     if left:
                         message.set_notify()
                         left = False
-
                     # Resets game state
                     if reset >= 2:
                         scores = {}
