@@ -9,7 +9,7 @@ This is a simple quiz game implemented using Python and sockets.
 2. **Connect clients:** Run the `client.py` script on two different machines or terminals with python3 client.py -i ip_address -p port_number
 3. **Play the game:** Players take turns entering their answers. The player with the most correct answers wins.
 4. **To Leave:** Enter either Leave or leave during username or answer input.
-5. **Current Questions and Answers:** {Question 1: Answer 1, Question 2: Answer 2, Question 3: Answer 3, Question 4: Answer 4}
+5. **Current Questions and Answers:** {"What is 2 * (5 + 5 / 5)?": "C","What is the capital of the US?": "A","Where is the Eiffel Tower?": "D","How many states are there?": "B"}
 
 **Message Protocol Schema**
 * {type="text/json", encoding="utf-8", content= {action="action", value="value}}
