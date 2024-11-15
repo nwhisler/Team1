@@ -5,7 +5,7 @@ import json
 import io
 import struct
 
-questions = {"Question 1": "Answer 1","Question 2": "Answer 2","Question 3": "Answer 3","Question 4": "Answer 4"}
+questions = {"What is 2 * (5 + 5 / 5)?": "C","What is the capital of the US?": "A","Where is the Eiffel Tower?": "D","How many states are there?": "B"}
 
 class Message:
     def __init__(self, selector, sock, addr):
@@ -147,7 +147,8 @@ class Message:
 
             message_action = "Welcome"
             message_value = ("Welcome\n" + 
-                            "Enter a username to begin. To leave enter leave.\n")
+                            "Enter a username to begin. To leave enter leave.\n" +
+                            "To answer a question use A, B, C, or D. Use capital letters.\n")
             message = dict(type="text/json", encoding="utf-8", content=dict(action=message_action, value=message_value),)
             message = self._json_encode(message, message["encoding"])
             self._send_buffer += message
@@ -172,25 +173,45 @@ class Message:
                     self.notify = False
 
                 elif self.request["content"]["action"] == "Option" and self.username is not None:
-                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value="Question 1"),)
+                    value = ("What is 2 * (5 + 5 / 5)?\n" +
+                             "A. 4\n" +
+                             "B. 1\n" +
+                             "C. 12\n" +
+                             "D. 3")
+                    message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
                     message = self._json_encode(message, message["encoding"])
                     self._send_buffer += message
                     self.previousQuestion = "Question 1"
                 elif self.previousQuestion:
                     if self.previousQuestion == "Question 1":
-                        value = self.username + " total Correct: " + str(self.correct) + "\n" + "Question 2"
+                        value = (self.username + " total Correct: " + str(self.correct) + "\n" + 
+                                 "What is the capital of the US?\n" +
+                                 "A. Washington DC\n" +
+                                 "B. New York\n" +
+                                 "C. Orlando\n" +
+                                 "D. Washington")
                         message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
                         message = self._json_encode(message, message["encoding"])
                         self._send_buffer += message
                         self.previousQuestion = "Question 2"
                     elif self.previousQuestion == "Question 2":
-                        value = self.username + " total Correct: " + str(self.correct) + "\n" + "Question 3"
+                        value = (self.username + " total Correct: " + str(self.correct) + "\n" + 
+                                 "Where is the Eiffel Tower?\n" +
+                                 "A. Germany\n" +
+                                 "B. New York\n" +
+                                 "C. London\n" +
+                                 "D. Paris")
                         message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
                         message = self._json_encode(message, message["encoding"])
                         self._send_buffer += message
                         self.previousQuestion = "Question 3"
                     elif self.previousQuestion == "Question 3":
-                        value = self.username + " total Correct: " + str(self.correct) + "\n" + "Question 4"
+                        value = (self.username + " total Correct: " + str(self.correct) + "\n" + 
+                                 "How many states are there?\n" +
+                                 "A. 51\n"
+                                 "B. 50\n"
+                                 "C. 40\n"
+                                 "D. 10")
                         message = dict(type="text/json", encoding="utf-8", content=dict(action="Question", value=value),)
                         message = self._json_encode(message, message["encoding"])
                         self._send_buffer += message
@@ -294,25 +315,29 @@ class Message:
             self.request = message
             if message["content"]["action"] == "Answer":
                 if self.previousQuestion == "Question 1":
-                    if message["content"]["value"] == questions[self.previousQuestion]:
+                    question_1_key = "What is 2 * (5 + 5 / 5)?"
+                    if message["content"]["value"] == questions[question_1_key]:
                         self.correct += 1
                     if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
                         self.closed = True
                         self.close()
                 elif self.previousQuestion == "Question 2":
-                    if message["content"]["value"] == questions[self.previousQuestion]:
+                    question_2_key = "What is the capital of the US?"
+                    if message["content"]["value"] == questions[question_2_key]:
                         self.correct += 1
                     if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
                         self.closed = True
                         self.close()
                 elif self.previousQuestion == "Question 3":
-                    if message["content"]["value"] == questions[self.previousQuestion]:
+                    question_3_key = "Where is the Eiffel Tower?"
+                    if message["content"]["value"] == questions[question_3_key]:
                         self.correct += 1
                     if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
                         self.closed = True
                         self.close()
                 elif self.previousQuestion == "Question 4":
-                    if message["content"]["value"] == questions[self.previousQuestion]:
+                    question_4_key = "How many states are there?"
+                    if message["content"]["value"] == questions[question_4_key]:
                         self.correct += 1
                     if message["content"]["value"] == "Leave" or message["content"]["value"] == "leave":
                         self.closed = True
