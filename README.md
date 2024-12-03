@@ -27,6 +27,9 @@ This is a simple quiz game implemented using Python and sockets.
 * Python
 * Sockets
 
+**Security Concerns:**
+* Buffer overflow attacks pose a significant risk as they can overwrite adjacent memory sections, potentially allowing attackers to gain control over a system or access sensitive information. This concern can be mitigated by restricting the buffer to a specified size, carefully reading only the intended amount of data, using the retrieved value for string comparison, and resetting the buffer afterward. Injection attacks, which manipulate the program into executing unintended actions, are less of a concern here due to the absence of accessible SQL or command line interfaces that could be exploited for such attacks.
+
 **Additional resources:**
 * https://www.python.org/
 * https://docs.python.org/3/library/socket.html
