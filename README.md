@@ -30,6 +30,13 @@ This is a simple quiz game implemented using Python and sockets.
 **Security Concerns:**
 * Buffer overflow attacks pose a significant risk as they can overwrite adjacent memory sections, potentially allowing attackers to gain control over a system or access sensitive information. This concern can be mitigated by restricting the buffer to a specified size, carefully reading only the intended amount of data, using the retrieved value for string comparison, and resetting the buffer afterward. Injection attacks, which manipulate the program into executing unintended actions, are less of a concern here due to the absence of accessible SQL or command line interfaces that could be exploited for such attacks.
 
+**Roadmap:**
+* I would enhance the project by transforming it into a more dynamic experience, where questions are selected and presented randomly, and the question pool is expanded beyond just four. Additionally, I would improve the user interface by incorporating more graphics and making it more interactive for a richer user experience.
+
+**Retrospective:**
+* The key success of the project was the development and implementation of its core functionality. The game meets all the specified requirements effectively and operates as intended. Additionally, it has minimal security concerns.
+* An area for improvement would be a more spacious and user-friendly interface layout, avoiding the current cramped design, as well as an expansion of the question pool.
+
 **Additional resources:**
 * https://www.python.org/
 * https://docs.python.org/3/library/socket.html
